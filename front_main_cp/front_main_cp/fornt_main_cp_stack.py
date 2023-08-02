@@ -4,14 +4,18 @@ from aws_cdk import (
     aws_codebuild as codebuild,
     Stack,
     RemovalPolicy,
+    Fn
 )
 import aws_cdk.aws_s3 as s3
 from constructs import Construct
 import os
 from dotenv import load_dotenv
 from aws_cdk.aws_codebuild import LinuxBuildImage
+import aws_cdk.aws_iam as iam
 
 load_dotenv()
+
+
 class FrontMain(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -38,6 +42,9 @@ class FrontMain(Stack):
 
         frontmainpipeline.add_stage(stage_name="SourceMain", actions=[github_source_action])
 
+        # Импортируем роль IAM из другого стека
+        codebuild_role_arn = Fn.import_value("CodeBuildRoleArn")
+
         project = codebuild.PipelineProject(
             self,
             "BuildMain",
@@ -45,6 +52,7 @@ class FrontMain(Stack):
             environment=codebuild.BuildEnvironment(
                 build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:5.0")
             ),
+            role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole", role_arn=codebuild_role_arn),
         )
 
         build_action = codepipeline_actions.CodeBuildAction(
