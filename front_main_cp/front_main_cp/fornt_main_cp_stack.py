@@ -3,10 +3,8 @@ from aws_cdk import (
     aws_codepipeline_actions as codepipeline_actions,
     aws_codebuild as codebuild,
     Stack,
-    RemovalPolicy,
     Fn
 )
-import aws_cdk.aws_s3 as s3
 from constructs import Construct
 import os
 from dotenv import load_dotenv
@@ -30,7 +28,7 @@ class FrontMain(Stack):
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
 
-        github_source_action = codepipeline_actions.CodeStarConnectionsSourceAction(
+        github_source_action_main = codepipeline_actions.CodeStarConnectionsSourceAction(
             action_name="GitHubSourceMain",
             owner=git_repo_owner,
             repo=git_repo_name,
@@ -40,26 +38,26 @@ class FrontMain(Stack):
             trigger_on_push=True,
         )
 
-        frontmainpipeline.add_stage(stage_name="SourceMain", actions=[github_source_action])
+        frontmainpipeline.add_stage(stage_name="SourceMain", actions=[github_source_action_main])
 
         # Импортируем роль IAM из другого стека
-        codebuild_role_arn = Fn.import_value("CodeBuildRoleArn")
+        codebuild_role_arn_main = Fn.import_value("CodeBuildRoleArnMain")
 
-        project = codebuild.PipelineProject(
+        project_main = codebuild.PipelineProject(
             self,
             "BuildMain",
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:5.0")
             ),
-            role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole", role_arn=codebuild_role_arn),
+            role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole", role_arn=codebuild_role_arn_main),
         )
 
-        build_action = codepipeline_actions.CodeBuildAction(
+        build_action_main = codepipeline_actions.CodeBuildAction(
             action_name="BuildActionMain",
             input=source_output,
-            project=project,
+            project=project_main,
             outputs=[build_output],
         )
 
-        frontmainpipeline.add_stage(stage_name="BuildMain", actions=[build_action])
+        frontmainpipeline.add_stage(stage_name="BuildMain", actions=[build_action_main])
