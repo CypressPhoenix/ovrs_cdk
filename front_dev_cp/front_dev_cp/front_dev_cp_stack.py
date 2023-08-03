@@ -22,6 +22,7 @@ class FrontDev(Stack):
         git_branch = os.environ.get("GIT_BRANCH_DEV")
         git_repo_name = os.environ.get("GIT_REPO_NAME")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
+        distribution_id = Fn.import_value("DistributionIDDev")
 
         frontdevpipeline = codepipeline.Pipeline(self, "FrontDev", pipeline_name="FrontDev",)
 
@@ -47,7 +48,7 @@ class FrontDev(Stack):
             "BuildDev",
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
-                build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:8.0")
+                build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:7.0")
             ),
             role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole", role_arn=codebuild_role_arn_dev),
         )
@@ -57,6 +58,9 @@ class FrontDev(Stack):
             input=source_output,
             project=project_dev,
             outputs=[build_output],
+            environment_variables={
+                "CL_FRONT_DIST_ID": codebuild.BuildEnvironmentVariable(value=distribution_id),
+            },
         )
 
         frontdevpipeline.add_stage(stage_name="BuildDev", actions=[build_action_dev])

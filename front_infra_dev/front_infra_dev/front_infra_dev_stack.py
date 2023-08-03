@@ -11,14 +11,14 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-class FrontInfraMain(Stack):
+class FrontInfraDev(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         bucket_dev = s3.Bucket(
             self,
-            "bucketforfrontdev",
-            bucket_name="bucketbforfrontdev",
+            "bucket-front-dev-kryvobok",
+            bucket_name="bucket-front-dev-kryvobok",
             encryption=s3.BucketEncryption.S3_MANAGED,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,
@@ -40,18 +40,18 @@ class FrontInfraMain(Stack):
                 iam.PolicyStatement(
                     actions=["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
                     effect=iam.Effect.ALLOW,
-                    resources=[bucket_dev.bucket_arn, bucket_dev.bucket_arn + "/*", bucket_dev.bucket_arn, bucket_dev.bucket_arn + "*"],
-
+                    resources=[bucket_dev.bucket_arn, f"{bucket_dev.bucket_arn}/*",bucket_dev.bucket_arn, bucket_dev.bucket_arn + "*"],
                 )
             ]
         )
-        distribution_id=distribution_dev.distribution_id
+
+        distribution_id = distribution_dev.distribution_id
         cloudfront_policy_dev = iam.PolicyDocument(
             statements=[
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
-                    actions=["cloudfront:CreateInvalidation"],
-                    resources=[f"arn:aws:cloudfront::{os.getenv('ACCOUNT_ID')}:distribution_main/{distribution_id}"]
+                    actions=["cloudfront:*"],
+                    resources=[f"arn:aws:cloudfront:::{os.getenv('ACCOUNT_ID')}:distribution/{distribution_id}"]
                 )
             ]
         )
@@ -67,6 +67,8 @@ class FrontInfraMain(Stack):
         )
 
         codebuild_role_arn_dev = codebuild_role_dev.role_arn
+        distribution_id = distribution_dev.distribution_id
+        CfnOutput(self, "DistributionIDExport", value=distribution_id, export_name="DistributionIDDev")
         CfnOutput(self, "CodeBuildRoleArnExport", value=codebuild_role_arn_dev, export_name="CodeBuildRoleArnDev")
         CfnOutput(self, "CloudFrontURL", value="none")
         CfnOutput(self, "S3 Bucket", value=bucket_dev.bucket_arn)

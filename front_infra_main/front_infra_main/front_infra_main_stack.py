@@ -17,8 +17,8 @@ class FrontInfraMain(Stack):
 
         bucket_main = s3.Bucket(
             self,
-            "bucketforfrontmain",
-            bucket_name="bucketbforfrontmain",
+            "bucket-front-main-kryvobok",
+            bucket_name="bucket-front-main-kryvobok",
             encryption=s3.BucketEncryption.S3_MANAGED,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,
@@ -40,18 +40,18 @@ class FrontInfraMain(Stack):
                 iam.PolicyStatement(
                     actions=["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
                     effect=iam.Effect.ALLOW,
-                    resources=[bucket_main.bucket_arn, bucket_main.bucket_arn + "/*", bucket_main.bucket_arn, bucket_main.bucket_arn + "*"],
-
+                    resources=[bucket_main.bucket_arn, f"{bucket_main.bucket_arn}/*",bucket_main.bucket_arn, bucket_main.bucket_arn + "*"],
                 )
             ]
         )
-        distribution_id=distribution_main.distribution_id
+
+        distribution_id = distribution_main.distribution_id
         cloudfront_policy_main = iam.PolicyDocument(
             statements=[
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=["cloudfront:CreateInvalidation"],
-                    resources=[f"arn:aws:cloudfront::{os.getenv('ACCOUNT_ID')}:distribution_main/{distribution_id}"]
+                    resources=[f"arn:aws:cloudfront:::{os.getenv('ACCOUNT_ID')}:distribution/{distribution_id}"]
                 )
             ]
         )
