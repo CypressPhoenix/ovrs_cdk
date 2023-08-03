@@ -40,7 +40,6 @@ class FrontDev(Stack):
 
         frontdevpipeline.add_stage(stage_name="SourceDev", actions=[github_source_action_Dev])
 
-        # Импортируем роль IAM из другого стека
         codebuild_role_arn_dev = Fn.import_value("CodeBuildRoleArnDev")
 
         project_dev = codebuild.PipelineProject(
@@ -48,7 +47,7 @@ class FrontDev(Stack):
             "BuildDev",
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
-                build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:5.0")
+                build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:8.0")
             ),
             role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole", role_arn=codebuild_role_arn_dev),
         )
