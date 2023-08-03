@@ -1,17 +1,10 @@
-from aws_cdk import Stack, RemovalPolicy, CfnOutput
-import aws_cdk.aws_s3 as s3
-import aws_cdk.aws_cloudfront as cloudfront
+from aws_cdk import Stack, CfnOutput
 from constructs import Construct
-import aws_cdk.aws_iam as iam
 from aws_cdk import (
     aws_s3 as s3,
     aws_cloudfront as cloudfront,
     aws_cloudfront_origins as origins,
-    aws_certificatemanager as acm,
-    aws_route53 as route53,
-    aws_route53_targets as targets,
     aws_iam as iam,
-    aws_ssm as ssm,
     RemovalPolicy
 )
 import os
@@ -32,7 +25,6 @@ class FrontInfraMain(Stack):
             auto_delete_objects=True,
         )
 
-        # Create a CloudFront distribution_main.
         distribution_dev = cloudfront.Distribution(
             self,
             "cloudfrontdistributiondev",
@@ -64,7 +56,6 @@ class FrontInfraMain(Stack):
             ]
         )
 
-        # Создаем IAM роль для CodeBuild
         codebuild_role_dev = iam.Role(
             self,
             "CodeBuildRoleDev",
@@ -75,7 +66,6 @@ class FrontInfraMain(Stack):
             },
         )
 
-        # Экспортируем роль IAM для использования в других стеках
         codebuild_role_arn_dev = codebuild_role_dev.role_arn
         CfnOutput(self, "CodeBuildRoleArnExport", value=codebuild_role_arn_dev, export_name="CodeBuildRoleArnDev")
         CfnOutput(self, "CloudFrontURL", value="none")
