@@ -67,6 +67,7 @@ class FrontInfraMain(Stack):
         )
 
         codebuild_role_arn_main = codebuild_role_main.role_arn
+        CfnOutput(self, "CloudFrontDistributionIdOutputMain", value=distribution_id,export_name="MyCloudFrontDistributionIdMain")
         CfnOutput(self, "CodeBuildRoleArnExport", value=codebuild_role_arn_main, export_name="CodeBuildRoleArnMain")
         CfnOutput(self, "CloudFrontURL", value="none")
         CfnOutput(self, "S3 Bucket", value=bucket_main.bucket_arn)
