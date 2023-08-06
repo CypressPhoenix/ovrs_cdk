@@ -15,6 +15,14 @@ class FrontInfraDev(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        existing_managed_policy_arn = "arn:aws:iam::aws:policy/CloudFrontFullAccess"
+
+        existing_policy = iam.ManagedPolicy.from_managed_policy_arn(
+            self,
+            "ExistingPolicy",
+            existing_managed_policy_arn
+        )
+
         bucket_dev = s3.Bucket(
             self,
             "bucket-front-dev-kryvobok",
@@ -65,6 +73,7 @@ class FrontInfraDev(Stack):
                 "CloudFrontCreateInvalidationPolicyDev": cloudfront_policy_dev,
             },
         )
+        codebuild_role_dev.add_managed_policy(existing_policy)
 
         codebuild_role_arn_dev = codebuild_role_dev.role_arn
         distribution_id = distribution_dev.distribution_id

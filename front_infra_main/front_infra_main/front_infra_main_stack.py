@@ -15,6 +15,14 @@ class FrontInfraMain(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        existing_managed_policy_arn = "arn:aws:iam::aws:policy/CloudFrontFullAccess"
+
+        existing_policy = iam.ManagedPolicy.from_managed_policy_arn(
+            self,
+            "ExistingPolicy",
+            existing_managed_policy_arn
+        )
+
         bucket_main = s3.Bucket(
             self,
             "bucket-front-main-kryvobok",
@@ -50,7 +58,7 @@ class FrontInfraMain(Stack):
             statements=[
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
-                    actions=["cloudfront:CreateInvalidation"],
+                    actions=["cloudfront:*"],
                     resources=[f"arn:aws:cloudfront:::{os.getenv('ACCOUNT_ID')}:distribution/{distribution_id}"]
                 )
             ]
@@ -65,8 +73,11 @@ class FrontInfraMain(Stack):
                 "CloudFrontCreateInvalidationPolicyMain": cloudfront_policy_main,
             },
         )
+        codebuild_role_main.add_managed_policy(existing_policy)
 
         codebuild_role_arn_main = codebuild_role_main.role_arn
+        distribution_id = distribution_main.distribution_id
+        CfnOutput(self, "DistributionIDExport", value=distribution_id, export_name="DistributionIDMain")
         CfnOutput(self, "CodeBuildRoleArnExport", value=codebuild_role_arn_main, export_name="CodeBuildRoleArnMain")
         CfnOutput(self, "CloudFrontURL", value="none")
         CfnOutput(self, "S3 Bucket", value=bucket_main.bucket_arn)
