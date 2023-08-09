@@ -22,7 +22,8 @@ class SLSMain(Stack):
         git_branch = os.environ.get("GIT_BRANCH_TEST")
         git_repo_name = os.environ.get("GIT_REPO_NAME_SLS")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
-        distribution_id = Fn.import_value("DistributionIDMain")
+        CardsTableArnMain = Fn.import_value("CardsTableArnMain")
+        ColumnsTableArnMain = Fn.import_value("ColumnsTableArnMain")
 
         backslsmainpipeline = codepipeline.Pipeline(self, "BackMainSLS", pipeline_name="BackMainSLS",)
 
@@ -71,7 +72,8 @@ class SLSMain(Stack):
             project=project_main,
             outputs=[build_output],
             environment_variables={
-                "CL_FRONT_DIST_ID": codebuild.BuildEnvironmentVariable(value=distribution_id),
+                "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArnMain),
+                "CARDS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=ColumnsTableArnMain),
             },
         )
 

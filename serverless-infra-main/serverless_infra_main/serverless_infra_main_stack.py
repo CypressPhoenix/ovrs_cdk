@@ -1,59 +1,40 @@
-from aws_cdk import Stack
-from constructs import Construct
-from aws_cdk import aws_lambda as _lambda
+from aws_cdk import Stack, RemovalPolicy, Fn, CfnOutput
 from aws_cdk import aws_dynamodb as dynamodb
-from aws_cdk import aws_apigateway as apigateway
-from aws_cdk import aws_iam as iam
-from aws_cdk import Fn
+from constructs import Construct
 
-class LambdaDynamoDBStack(Stack):
+class DatabaseStack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        cloudfront_distribution_id = Fn.import_value("MyCloudFrontDistributionIdMain")
-        # Step 1: Create Lambda function
-        my_lambda = _lambda.Function(
-            self, 'MyLambda',
-            runtime=_lambda.Runtime.PYTHON_3_8,
-            handler='index.handler',
-            code=_lambda.Code.from_asset('lambda'),
-        )
-
-        # Step 2: Create DynamoDB table
-        my_table = dynamodb.Table(
-            self, 'MyTable',
+        columns_table = dynamodb.Table(
+            self,
+            "ColumnsTable",
+            table_name="adavydova-columns",
             partition_key=dynamodb.Attribute(
-                name='id',
-                type=dynamodb.AttributeType.STRING,
-            )
+                name="columnID",
+                type=dynamodb.AttributeType.STRING
+            ),
+            read_capacity=1,
+            write_capacity=1,
+            removal_policy=RemovalPolicy.DESTROY  # Be cautious with this setting in production
         )
 
-        # Step 3: Create API Gateway
-        my_api = apigateway.RestApi(
-            self, 'MyApi',
-            deploy_options={
-                "stage_name": "v1"
-            }
+        cards_table = dynamodb.Table(
+            self,
+            "CardsTable",
+            table_name="adavydova-cards",
+            partition_key=dynamodb.Attribute(
+                name="cardID",
+                type=dynamodb.AttributeType.STRING
+            ),
+            read_capacity=1,
+            write_capacity=1,
+            removal_policy=RemovalPolicy.DESTROY  # Be cautious with this setting in production
         )
 
-        my_resource = my_api.root.add_resource('my-resource')
-        cloudfront_integration = apigateway.Integration(
-            type=apigateway.IntegrationType.HTTP,
-            integration_http_method="GET",
-            uri=f"https://{cloudfront_distribution_id}.cloudfront.net",
-        )
-        my_resource.add_method('GET', cloudfront_integration)
-
-        # Step 4: Create IAM role for Lambda to access DynamoDB
-        lambda_role = iam.Role(
-            self, 'LambdaRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-        )
-        my_table.grant_read_write_data(lambda_role)
-
-        # Step 5: Create Lambda integration with API Gateway
-        my_resource = my_api.root.add_resource('my-resource')
-        my_resource.add_method('GET', apigateway.LambdaIntegration(my_lambda))
-
-
+        # Export the tables' ARNs for use in other stacks or applications
+        columns_table_arn_main = columns_table.table_arn
+        cards_table_arn_main = cards_table.table_arn
+        CfnOutput(self, "CardsTableArnMainExport", value=cards_table_arn_main, export_name="CardsTableArnMain")
+        CfnOutput(self, "ColumnsTableArnMainExport", value=columns_table_arn_main, export_name="ColumnsTableArnMain")
