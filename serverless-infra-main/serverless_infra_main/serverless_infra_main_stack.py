@@ -19,6 +19,16 @@ class DatabaseStack(Stack):
             write_capacity=1,
             removal_policy=RemovalPolicy.DESTROY  # Be cautious with this setting in production
         )
+        columns_table.add_global_secondary_index(
+            index_name='columnsByIndex',
+            partition_key=dynamodb.Attribute(
+                name='columnIndex',
+                type=dynamodb.AttributeType.NUMBER
+            ),
+            projection_type=dynamodb.ProjectionType.ALL,
+            read_capacity=1,
+            write_capacity=1
+        )
 
         cards_table = dynamodb.Table(
             self,
@@ -31,6 +41,20 @@ class DatabaseStack(Stack):
             read_capacity=1,
             write_capacity=1,
             removal_policy=RemovalPolicy.DESTROY  # Be cautious with this setting in production
+        )
+        cards_table.add_global_secondary_index(
+            index_name="cardsByColumnIdAndIndex",
+            partition_key=dynamodb.Attribute(
+                name="columnID",
+                type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name='cardIndex',
+                type=dynamodb.AttributeType.NUMBER
+            ),
+            read_capacity=1,
+            write_capacity=1,
+            projection_type=dynamodb.ProjectionType.ALL
         )
 
         # Export the tables' ARNs for use in other stacks or applications
