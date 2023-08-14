@@ -24,6 +24,8 @@ class SLSMain(Stack):
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
         CardsTableArnMain = Fn.import_value("CardsTableArnMain")
         ColumnsTableArnMain = Fn.import_value("ColumnsTableArnMain")
+        ColumnsTableNameMain = Fn.import_value("ColumnsTableNameMain")
+        CardsTableNameMain = Fn.import_value("CardsTableNameMain")
 
         backslsmainpipeline = codepipeline.Pipeline(self, "BackMainSLS", pipeline_name="BackMainSLS",)
 

@@ -2,29 +2,38 @@ from aws_cdk import Stack, RemovalPolicy, Fn, CfnOutput
 from aws_cdk import aws_dynamodb as dynamodb
 from constructs import Construct
 
-class DatabaseStack(Stack):
+class DatabaseStackDev(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        columns_table_main = dynamodb.Table(
+        columns_table = dynamodb.Table(
             self,
-            "ColumnsTableMain",
-            table_name="adavydova-columns_main",
+            "ColumnsTable",
+            table_name="adavydova-columns_dev",
             partition_key=dynamodb.Attribute(
                 name="columnID",
                 type=dynamodb.AttributeType.STRING
             ),
-            sort_key=dynamodb.Attribute(name="columnIndex", type=dynamodb.AttributeType.NUMBER),
             read_capacity=1,
             write_capacity=1,
             removal_policy=RemovalPolicy.DESTROY  # Be cautious with this setting in production
         )
+        columns_table.add_global_secondary_index(
+            index_name='columnsByIndex',
+            partition_key=dynamodb.Attribute(
+                name='columnIndex',
+                type=dynamodb.AttributeType.NUMBER
+            ),
+            projection_type=dynamodb.ProjectionType.ALL,
+            read_capacity=1,
+            write_capacity=1
+        )
 
-        cards_table_main = dynamodb.Table(
+        cards_table = dynamodb.Table(
             self,
-            "CardsTableMain",
-            table_name="adavydova-cards_main",
+            "CardsTable",
+            table_name="adavydova-cards-dev",
             partition_key=dynamodb.Attribute(
                 name="cardID",
                 type=dynamodb.AttributeType.STRING
@@ -33,7 +42,7 @@ class DatabaseStack(Stack):
             write_capacity=1,
             removal_policy=RemovalPolicy.DESTROY  # Be cautious with this setting in production
         )
-        cards_table_main.add_global_secondary_index(
+        cards_table.add_global_secondary_index(
             index_name="cardsByColumnIdAndIndex",
             partition_key=dynamodb.Attribute(
                 name="columnID",
@@ -49,7 +58,11 @@ class DatabaseStack(Stack):
         )
 
         # Export the tables' ARNs for use in other stacks or applications
-        columns_table_arn_main = columns_table_main.table_arn
-        cards_table_arn_main = cards_table_main.table_arn
-        CfnOutput(self, "CardsTableArnMainExport", value=cards_table_arn_main, export_name="CardsTableArnMain")
-        CfnOutput(self, "ColumnsTableArnMainExport", value=columns_table_arn_main, export_name="ColumnsTableArnMain")
+        columns_table_arn_dev = columns_table.table_arn
+        cards_table_arn_dev = cards_table.table_arn
+        columns_table_name_dev = columns_table.table_name
+        cards_table_name_dev = cards_table.table_name
+        CfnOutput(self, "CardsTableArnDevExport", value=cards_table_arn_dev, export_name="CardsTableArnDev")
+        CfnOutput(self, "ColumnsTableArnDevExport", value=columns_table_arn_dev, export_name="ColumnsTableArnDev")
+        CfnOutput(self, "CardsTableNameDevExport", value=cards_table_name_dev, export_name="CardsTableNameDev")
+        CfnOutput(self, "ColumnsTableNameDevExport", value=columns_table_name_dev, export_name="ColumnsTableNameDev")

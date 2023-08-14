@@ -4,7 +4,7 @@ import aws_cdk.assertions as assertions
 from serverless_infra_main.serverless_infra_main_stack import ServerlessInfraMainStack
 
 # example tests. To run these tests, uncomment this file along with the example
-# resource in serverless_infra_main/serverless_infra_main_stack.py
+# resource in serverless_infra_dev/serverless_infra_dev_stack.py
 def test_sqs_queue_created():
     app = core.App()
     stack = ServerlessInfraMainStack(app, "serverless-infra-main")

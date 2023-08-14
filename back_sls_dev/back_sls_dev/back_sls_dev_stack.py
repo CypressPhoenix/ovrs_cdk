@@ -24,6 +24,8 @@ class SLSDev(Stack):
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
         CardsTableArnDev = Fn.import_value("CardsTableArnDev")
         ColumnsTableArnDev = Fn.import_value("ColumnsTableArnDev")
+        ColumnsTableNameDev = Fn.import_value("ColumnsTableNameDev")
+        CardsTableNameDev = Fn.import_value("CardsTableNameDev")
 
         backslsdevpipeline = codepipeline.Pipeline(self, "BackDevSLS", pipeline_name="BackDevSLS",)
 
@@ -74,6 +76,8 @@ class SLSDev(Stack):
             environment_variables={
                 "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArnDev),
                 "CARDS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=ColumnsTableArnDev),
+                "COLUMNS_TABLE_NAME": codebuild.BuildEnvironmentVariable(value=ColumnsTableNameDev),
+                "CARDS_TABLE_NAME": codebuild.BuildEnvironmentVariable(value=CardsTableNameDev),
             },
         )
 
