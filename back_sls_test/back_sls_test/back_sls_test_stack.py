@@ -14,23 +14,23 @@ import aws_cdk.aws_iam as iam
 load_dotenv()
 
 
-class SLSMain(Stack):
+class SLSTest(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         connection_arn = os.environ.get("CONNECTION_ARN")
-        git_branch = os.environ.get("GIT_BRANCH_MAIN")
+        git_branch = os.environ.get("GIT_BRANCH_TEST")
         git_repo_name = os.environ.get("GIT_REPO_NAME_SLS")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
         CardsTableArnMain = Fn.import_value("CardsTableArnMain")
         ColumnsTableArnMain = Fn.import_value("ColumnsTableArnMain")
 
-        backslsmainpipeline = codepipeline.Pipeline(self, "BackMainSLS", pipeline_name="BackMainSLS",)
+        backslstestpipeline = codepipeline.Pipeline(self, "BackTestSLS", pipeline_name="BackTestSLS",)
 
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
 
-        sls_role = iam.Role(
+        sls_role_test = iam.Role(
             self,
             "CodeBuildRole",
             assumed_by=iam.ServicePrincipal("codebuild.amazonaws.com"),
@@ -42,8 +42,8 @@ class SLSMain(Stack):
             ],
         )
 
-        github_source_action_main = codepipeline_actions.CodeStarConnectionsSourceAction(
-            action_name="GitHubSourceMainSLS",
+        github_source_action_test = codepipeline_actions.CodeStarConnectionsSourceAction(
+            action_name="GitHubSourceTestSLS",
             owner=git_repo_owner,
             repo=git_repo_name,
             branch=git_branch,
@@ -52,24 +52,24 @@ class SLSMain(Stack):
             trigger_on_push=True,
         )
 
-        backslsmainpipeline.add_stage(stage_name="SourceMainSLS", actions=[github_source_action_main])
+        backslstestpipeline.add_stage(stage_name="SourceTestSLS", actions=[github_source_action_test])
 
         codebuild_role_arn_main = Fn.import_value("CodeBuildRoleArnMain")
 
-        project_main = codebuild.PipelineProject(
+        project_test = codebuild.PipelineProject(
             self,
-            "BuildMainSLS",
+            "BuildTestSLS",
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:7.0")
             ),
-            role=sls_role,
+            role=sls_role_test,
         )
 
-        build_action_main_SLS = codepipeline_actions.CodeBuildAction(
-            action_name="BuildActionMainSLS",
+        build_action_test_SLS = codepipeline_actions.CodeBuildAction(
+            action_name="BuildActionTestSLS",
             input=source_output,
-            project=project_main,
+            project=project_test,
             outputs=[build_output],
             environment_variables={
                 "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArnMain),
@@ -77,5 +77,5 @@ class SLSMain(Stack):
             },
         )
 
-        backslsmainpipeline.add_stage(stage_name="BuildMainSLS", actions=[build_action_main_SLS])
+        backslstestpipeline.add_stage(stage_name="BuildTestSLS", actions=[build_action_test_SLS])
 

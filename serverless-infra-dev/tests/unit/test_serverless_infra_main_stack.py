@@ -1,13 +1,13 @@
 import aws_cdk as core
 import aws_cdk.assertions as assertions
 
-from back_sls_main.back_sls_main_stack import BackSlsMainStack
+from serverless_infra_main.serverless_infra_main_stack import ServerlessInfraMainStack
 
 # example tests. To run these tests, uncomment this file along with the example
-# resource in back_sls_test/back_sls_test_stack.py
+# resource in serverless_infra_main/serverless_infra_main_stack.py
 def test_sqs_queue_created():
     app = core.App()
-    stack = BackSlsMainStack(app, "back-sls-main")
+    stack = ServerlessInfraMainStack(app, "serverless-infra-main")
     template = assertions.Template.from_stack(stack)
 
 #     template.has_resource_properties("AWS::SQS::Queue", {

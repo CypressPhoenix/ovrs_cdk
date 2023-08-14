@@ -80,4 +80,5 @@ class FrontInfraDev(Stack):
         CfnOutput(self, "DistributionIDExport", value=distribution_id, export_name="DistributionIDDev")
         CfnOutput(self, "CodeBuildRoleArnExport", value=codebuild_role_arn_dev, export_name="CodeBuildRoleArnDev")
         CfnOutput(self, "CloudFrontURL", value="none")
-        CfnOutput(self, "S3 Bucket", value=bucket_dev.bucket_arn)
+        CfnOutput(self, "S3BucketARN", value=bucket_dev.bucket_arn)
+        CfnOutput(self, "S3BucketName", value=bucket_dev.bucket_name, export_name="S3BucketName")
