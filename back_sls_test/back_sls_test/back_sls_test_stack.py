@@ -22,8 +22,10 @@ class SLSTest(Stack):
         git_branch = os.environ.get("GIT_BRANCH_TEST")
         git_repo_name = os.environ.get("GIT_REPO_NAME_SLS")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
-        CardsTableArnMain = Fn.import_value("CardsTableArnMain")
-        ColumnsTableArnMain = Fn.import_value("ColumnsTableArnMain")
+        CardsTableArnTest = Fn.import_value("CardsTableArnTest")
+        ColumnsTableArnTest = Fn.import_value("ColumnsTableArnTest")
+        ColumnsTableNameTest = Fn.import_value("ColumnsTableNameTest")
+        CardsTableNameTest = Fn.import_value("CardsTableNameTest")
 
         backslstestpipeline = codepipeline.Pipeline(self, "BackTestSLS", pipeline_name="BackTestSLS",)
 
@@ -54,7 +56,7 @@ class SLSTest(Stack):
 
         backslstestpipeline.add_stage(stage_name="SourceTestSLS", actions=[github_source_action_test])
 
-        codebuild_role_arn_main = Fn.import_value("CodeBuildRoleArnMain")
+        codebuild_role_arn_Test = Fn.import_value("CodeBuildRoleArnTest")
 
         project_test = codebuild.PipelineProject(
             self,
@@ -72,8 +74,10 @@ class SLSTest(Stack):
             project=project_test,
             outputs=[build_output],
             environment_variables={
-                "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArnMain),
-                "CARDS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=ColumnsTableArnMain),
+                "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArnTest),
+                "CARDS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=ColumnsTableArnTest),
+                "COLUMNS_TABLE_NAME": codebuild.BuildEnvironmentVariable(value=ColumnsTableNameTest),
+                "CARDS_TABLE_NAME": codebuild.BuildEnvironmentVariable(value=CardsTableNameTest),
             },
         )
 
