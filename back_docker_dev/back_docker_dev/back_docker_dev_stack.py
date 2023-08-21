@@ -28,7 +28,7 @@ class DockerDev(Stack):
 
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
-
+# Create source step
         github_source_action_dev = codepipeline_actions.CodeStarConnectionsSourceAction(
             action_name="GitHubSourceDevDocker",
             owner=git_repo_owner,
