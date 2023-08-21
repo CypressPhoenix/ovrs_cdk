@@ -9,28 +9,29 @@ from constructs import Construct
 import os
 from dotenv import load_dotenv
 from aws_cdk.aws_codebuild import LinuxBuildImage
-
+import aws_cdk.aws_iam as iam
 
 load_dotenv()
 
 
-class DockerDev(Stack):
+class FrontDev(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         connection_arn = os.environ.get("CONNECTION_ARN")
         git_branch = os.environ.get("GIT_BRANCH_DEV")
-        git_repo_name = os.environ.get("GIT_REPO_NAME_DOCKER")
+        git_repo_name = os.environ.get("GIT_REPO_NAME")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
+        distribution_id = Fn.import_value("DistributionIDDev")
+        s3_bucket_name = Fn.import_value("S3BucketName")
 
-
-        backdockerdevpipeline = codepipeline.Pipeline(self, "BackDevDocker", pipeline_name="BackDevDocker",)
+        frontdevpipeline = codepipeline.Pipeline(self, "FrontDev", pipeline_name="FrontDev",)
 
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
-# Create source step
-        github_source_action_dev = codepipeline_actions.CodeStarConnectionsSourceAction(
-            action_name="GitHubSourceDevDocker",
+
+        github_source_action_Dev = codepipeline_actions.CodeStarConnectionsSourceAction(
+            action_name="GitHubSourceDev",
             owner=git_repo_owner,
             repo=git_repo_name,
             branch=git_branch,
@@ -39,26 +40,29 @@ class DockerDev(Stack):
             trigger_on_push=True,
         )
 
-        backdockerdevpipeline.add_stage(stage_name="SourceDevDocker", actions=[github_source_action_dev])
+        frontdevpipeline.add_stage(stage_name="SourceDev", actions=[github_source_action_Dev])
 
         codebuild_role_arn_dev = Fn.import_value("CodeBuildRoleArnDev")
 
         project_dev = codebuild.PipelineProject(
             self,
-            "BuildDevDocker",
+            "BuildDev",
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:7.0")
             ),
+            role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole", role_arn=codebuild_role_arn_dev),
         )
 
-        build_action_dev_docker = codepipeline_actions.CodeBuildAction(
-            action_name="BuildActionDevDocker",
+        build_action_dev = codepipeline_actions.CodeBuildAction(
+            action_name="BuildActionDev",
             input=source_output,
             project=project_dev,
             outputs=[build_output],
-
+            environment_variables={
+                "CL_FRONT_DIST_ID": codebuild.BuildEnvironmentVariable(value=distribution_id),
+                "S3_Content_Bucket": codebuild.BuildEnvironmentVariable(value=s3_bucket_name)
+            },
         )
 
-        backdockerdevpipeline.add_stage(stage_name="BuildDevSDocker", actions=[build_action_dev_docker])
-
+        frontdevpipeline.add_stage(stage_name="BuildDev", actions=[build_action_dev])
