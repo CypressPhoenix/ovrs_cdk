@@ -19,25 +19,14 @@ class FrontMain(Stack):
         super().__init__(scope, id, **kwargs)
 
         connection_arn = os.environ.get("CONNECTION_ARN")
+        git_branch = os.environ.get("GIT_BRANCH_MAIN")
         git_repo_name = os.environ.get("GIT_REPO_NAME")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
         distribution_id = Fn.import_value("DistributionIDMain")
 
-        environment = os.environ.get("ENV")
-        resource_name = os.environ.get("RESOURCE_NAME")
+        pipeline_name_suffix = git_branch.capitalize()
 
-        if environment == "dev":
-            pipeline_name_suffix = "dev"
-        elif environment == "prod":
-            pipeline_name_suffix = "prod"
-        elif environment == "test":
-            pipeline_name_suffix = "test"
-        else:
-            raise ValueError("Unknown environment: {}".format(environment))
-
-        frontpipeline = codepipeline.Pipeline(
-            self, "Front" + pipeline_name_suffix, pipeline_name="Front" + pipeline_name_suffix
-        )
+        frontpipeline = codepipeline.Pipeline(self, "Front" + pipeline_name_suffix, pipeline_name="Front" + pipeline_name_suffix)
 
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
@@ -46,7 +35,7 @@ class FrontMain(Stack):
             action_name="GitHubSource" + pipeline_name_suffix,
             owner=git_repo_owner,
             repo=git_repo_name,
-            branch=pipeline_name_suffix,
+            branch=git_branch,
             connection_arn=connection_arn,
             output=source_output,
             trigger_on_push=True,
@@ -73,10 +62,7 @@ class FrontMain(Stack):
             outputs=[build_output],
             environment_variables={
                 "CL_FRONT_DIST_ID": codebuild.BuildEnvironmentVariable(value=distribution_id),
-                "ENV": codebuild.BuildEnvironmentVariable(value=environment),
-                "RESOURCE_NAME": codebuild.BuildEnvironmentVariable(value=resource_name),
             },
         )
 
         frontpipeline.add_stage(stage_name="Build" + pipeline_name_suffix, actions=[build_action])
-
