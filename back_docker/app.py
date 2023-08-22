@@ -1,5 +1,5 @@
 from aws_cdk import App
-from serverless_infra_main.serverless_infra_main_stack import DatabaseStackMain
+from back_docker.ecr_stack import DatabaseStackMain
 import os
 from dotenv import load_dotenv
 load_dotenv()
