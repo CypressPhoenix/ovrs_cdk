@@ -14,55 +14,61 @@ import aws_cdk.aws_iam as iam
 load_dotenv()
 
 
-class FrontMain(Stack):
+class DockerCP(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         connection_arn = os.environ.get("CONNECTION_ARN")
-        git_branch = os.environ.get("GIT_BRANCH_MAIN")
         git_repo_name = os.environ.get("GIT_REPO_NAME")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
-        distribution_id = Fn.import_value("DistributionIDMain")
 
-        pipeline_name_suffix = git_branch.capitalize()
+        if os.environ.get("ENV") == "dev":
+            name_suffix = "dev"
+        elif os.environ.get("ENV") == "main":
+            name_suffix = "main"
+        elif os.environ.get("ENV") == "test":
+            name_suffix = "test"
+        else:
+            raise ValueError("Unknown environment: {}".format(os.environ.get("ENV")))
 
-        frontpipeline = codepipeline.Pipeline(self, "Front" + pipeline_name_suffix, pipeline_name="Front" + pipeline_name_suffix)
+        dockerpipeline = codepipeline.Pipeline(
+            self, "DockerCP" + name_suffix, pipeline_name="DockerCP" + name_suffix
+        )
 
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
 
         github_source_action = codepipeline_actions.CodeStarConnectionsSourceAction(
-            action_name="GitHubSource" + pipeline_name_suffix,
+            action_name="GitHubSource" + name_suffix,
             owner=git_repo_owner,
             repo=git_repo_name,
-            branch=git_branch,
+            branch=name_suffix,
             connection_arn=connection_arn,
             output=source_output,
             trigger_on_push=True,
         )
 
-        frontpipeline.add_stage(stage_name="Source" + pipeline_name_suffix, actions=[github_source_action])
+        dockerpipeline.add_stage(stage_name="Source" + name_suffix, actions=[github_source_action])
 
-        codebuild_role_arn = Fn.import_value("CodeBuildRoleArn" + pipeline_name_suffix)
 
-        project = codebuild.PipelineProject(
+        dockercodebuild = codebuild.PipelineProject(
             self,
-            "Build" + pipeline_name_suffix,
+            "DockerBuild" + name_suffix,
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:7.0")
             ),
-            role=iam.Role.from_role_arn(self, "ImportedCodeBuildRole" + pipeline_name_suffix, role_arn=codebuild_role_arn),
         )
 
         build_action = codepipeline_actions.CodeBuildAction(
-            action_name="BuildAction" + pipeline_name_suffix,
+            action_name="BuildActionDocker" + name_suffix,
             input=source_output,
-            project=project,
+            project=dockercodebuild,
             outputs=[build_output],
             environment_variables={
-                "CL_FRONT_DIST_ID": codebuild.BuildEnvironmentVariable(value=distribution_id),
+                "ENV": codebuild.BuildEnvironmentVariable(value=os.environ.get("ENV")),
             },
         )
 
-        frontpipeline.add_stage(stage_name="Build" + pipeline_name_suffix, actions=[build_action])
+        dockerpipeline.add_stage(stage_name="DockerBuild" + name_suffix, actions=[build_action])
+
