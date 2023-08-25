@@ -1,0 +1,782 @@
+{
+ "Resources": {
+  "BackDevDockerArtifactsBucketEncryptionKey3A1F4160": {
+   "Type": "AWS::KMS::Key",
+   "Properties": {
+    "KeyPolicy": {
+     "Statement": [
+      {
+       "Action": "kms:*",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       },
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/ArtifactsBucketEncryptionKey/Resource"
+   }
+  },
+  "BackDevDockerArtifactsBucketEncryptionKeyAlias9EB1225C": {
+   "Type": "AWS::KMS::Alias",
+   "Properties": {
+    "AliasName": "alias/codepipeline-dockerdev-backdevdocker-cb2794ce",
+    "TargetKeyId": {
+     "Fn::GetAtt": [
+      "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+      "Arn"
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/ArtifactsBucketEncryptionKeyAlias/Resource"
+   }
+  },
+  "BackDevDockerArtifactsBucketBEB7A508": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "BucketEncryption": {
+     "ServerSideEncryptionConfiguration": [
+      {
+       "ServerSideEncryptionByDefault": {
+        "KMSMasterKeyID": {
+         "Fn::GetAtt": [
+          "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+          "Arn"
+         ]
+        },
+        "SSEAlgorithm": "aws:kms"
+       }
+      }
+     ]
+    },
+    "PublicAccessBlockConfiguration": {
+     "BlockPublicAcls": true,
+     "BlockPublicPolicy": true,
+     "IgnorePublicAcls": true,
+     "RestrictPublicBuckets": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/ArtifactsBucket/Resource"
+   }
+  },
+  "BackDevDockerArtifactsBucketPolicyE237ADE4": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "BackDevDockerArtifactsBucketBEB7A508"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:*",
+       "Condition": {
+        "Bool": {
+         "aws:SecureTransport": "false"
+        }
+       },
+       "Effect": "Deny",
+       "Principal": {
+        "AWS": "*"
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "BackDevDockerArtifactsBucketBEB7A508",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "BackDevDockerArtifactsBucketBEB7A508",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/ArtifactsBucket/Policy/Resource"
+   }
+  },
+  "BackDevDockerRoleB8C166DA": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "codepipeline.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/Role/Resource"
+   }
+  },
+  "BackDevDockerRoleDefaultPolicyB0025995": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "BackDevDockerArtifactsBucketBEB7A508",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "BackDevDockerArtifactsBucketBEB7A508",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:ReEncrypt*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "BackDevDockerBuildDevSDockerBuildActionDevDockerCodePipelineActionRole8E139755",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::GetAtt": [
+          "BackDevDockerSourceDevDockerGitHubSourceDevDockerCodePipelineActionRole56AF2781",
+          "Arn"
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BackDevDockerRoleDefaultPolicyB0025995",
+    "Roles": [
+     {
+      "Ref": "BackDevDockerRoleB8C166DA"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/Role/DefaultPolicy/Resource"
+   }
+  },
+  "BackDevDocker8307A0CA": {
+   "Type": "AWS::CodePipeline::Pipeline",
+   "Properties": {
+    "ArtifactStore": {
+     "EncryptionKey": {
+      "Id": {
+       "Fn::GetAtt": [
+        "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+        "Arn"
+       ]
+      },
+      "Type": "KMS"
+     },
+     "Location": {
+      "Ref": "BackDevDockerArtifactsBucketBEB7A508"
+     },
+     "Type": "S3"
+    },
+    "Name": "BackDevDocker",
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "BackDevDockerRoleB8C166DA",
+      "Arn"
+     ]
+    },
+    "Stages": [
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Source",
+         "Owner": "AWS",
+         "Provider": "CodeStarSourceConnection",
+         "Version": "1"
+        },
+        "Configuration": {
+         "ConnectionArn": "arn:aws:codestar-connections:eu-central-1:592699102634:connection/69345448-854c-469e-896f-6880045a6a19",
+         "FullRepositoryId": "CypressPhoenix/ovsrd-trainee-back-docker",
+         "BranchName": "master",
+         "DetectChanges": true
+        },
+        "Name": "GitHubSourceDevDocker",
+        "OutputArtifacts": [
+         {
+          "Name": "Artifact_SourceDevDocker_GitHubSourceDevDocker"
+         }
+        ],
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "BackDevDockerSourceDevDockerGitHubSourceDevDockerCodePipelineActionRole56AF2781",
+          "Arn"
+         ]
+        },
+        "RunOrder": 1
+       }
+      ],
+      "Name": "SourceDevDocker"
+     },
+     {
+      "Actions": [
+       {
+        "ActionTypeId": {
+         "Category": "Build",
+         "Owner": "AWS",
+         "Provider": "CodeBuild",
+         "Version": "1"
+        },
+        "Configuration": {
+         "ProjectName": {
+          "Ref": "BuildDevDockerD91B2EBB"
+         }
+        },
+        "InputArtifacts": [
+         {
+          "Name": "Artifact_SourceDevDocker_GitHubSourceDevDocker"
+         }
+        ],
+        "Name": "BuildActionDevDocker",
+        "OutputArtifacts": [
+         {
+          "Name": "Artifact_BuildDevSDocker_BuildActionDevDocker"
+         }
+        ],
+        "RoleArn": {
+         "Fn::GetAtt": [
+          "BackDevDockerBuildDevSDockerBuildActionDevDockerCodePipelineActionRole8E139755",
+          "Arn"
+         ]
+        },
+        "RunOrder": 1
+       }
+      ],
+      "Name": "BuildDevSDocker"
+     }
+    ]
+   },
+   "DependsOn": [
+    "BackDevDockerRoleDefaultPolicyB0025995",
+    "BackDevDockerRoleB8C166DA"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/Resource"
+   }
+  },
+  "BackDevDockerSourceDevDockerGitHubSourceDevDockerCodePipelineActionRole56AF2781": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/SourceDevDocker/GitHubSourceDevDocker/CodePipelineActionRole/Resource"
+   }
+  },
+  "BackDevDockerSourceDevDockerGitHubSourceDevDockerCodePipelineActionRoleDefaultPolicy63886B6B": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "codestar-connections:UseConnection",
+       "Effect": "Allow",
+       "Resource": "arn:aws:codestar-connections:eu-central-1:592699102634:connection/69345448-854c-469e-896f-6880045a6a19"
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "BackDevDockerArtifactsBucketBEB7A508",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "BackDevDockerArtifactsBucketBEB7A508",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:ReEncrypt*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:PutObjectAcl",
+        "s3:PutObjectVersionAcl"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "BackDevDockerArtifactsBucketBEB7A508",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BackDevDockerSourceDevDockerGitHubSourceDevDockerCodePipelineActionRoleDefaultPolicy63886B6B",
+    "Roles": [
+     {
+      "Ref": "BackDevDockerSourceDevDockerGitHubSourceDevDockerCodePipelineActionRole56AF2781"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/SourceDevDocker/GitHubSourceDevDocker/CodePipelineActionRole/DefaultPolicy/Resource"
+   }
+  },
+  "BackDevDockerBuildDevSDockerBuildActionDevDockerCodePipelineActionRole8E139755": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/BuildDevSDocker/BuildActionDevDocker/CodePipelineActionRole/Resource"
+   }
+  },
+  "BackDevDockerBuildDevSDockerBuildActionDevDockerCodePipelineActionRoleDefaultPolicy19BADA99": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "codebuild:BatchGetBuilds",
+        "codebuild:StartBuild",
+        "codebuild:StopBuild"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "BuildDevDockerD91B2EBB",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BackDevDockerBuildDevSDockerBuildActionDevDockerCodePipelineActionRoleDefaultPolicy19BADA99",
+    "Roles": [
+     {
+      "Ref": "BackDevDockerBuildDevSDockerBuildActionDevDockerCodePipelineActionRole8E139755"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BackDevDocker/BuildDevSDocker/BuildActionDevDocker/CodePipelineActionRole/DefaultPolicy/Resource"
+   }
+  },
+  "BuildDevDockerRole4FB6FED2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "codebuild.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BuildDevDocker/Role/Resource"
+   }
+  },
+  "BuildDevDockerRoleDefaultPolicy7A4B972C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:logs:eu-central-1:",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":log-group:/aws/codebuild/",
+           {
+            "Ref": "BuildDevDockerD91B2EBB"
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:logs:eu-central-1:",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":log-group:/aws/codebuild/",
+           {
+            "Ref": "BuildDevDockerD91B2EBB"
+           }
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "codebuild:BatchPutCodeCoverages",
+        "codebuild:BatchPutTestCases",
+        "codebuild:CreateReport",
+        "codebuild:CreateReportGroup",
+        "codebuild:UpdateReport"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:aws:codebuild:eu-central-1:",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":report-group/",
+          {
+           "Ref": "BuildDevDockerD91B2EBB"
+          },
+          "-*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "BackDevDockerArtifactsBucketBEB7A508",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "BackDevDockerArtifactsBucketBEB7A508",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:ReEncrypt*"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BuildDevDockerRoleDefaultPolicy7A4B972C",
+    "Roles": [
+     {
+      "Ref": "BuildDevDockerRole4FB6FED2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BuildDevDocker/Role/DefaultPolicy/Resource"
+   }
+  },
+  "BuildDevDockerD91B2EBB": {
+   "Type": "AWS::CodeBuild::Project",
+   "Properties": {
+    "Artifacts": {
+     "Type": "CODEPIPELINE"
+    },
+    "Cache": {
+     "Type": "NO_CACHE"
+    },
+    "EncryptionKey": {
+     "Fn::GetAtt": [
+      "BackDevDockerArtifactsBucketEncryptionKey3A1F4160",
+      "Arn"
+     ]
+    },
+    "Environment": {
+     "ComputeType": "BUILD_GENERAL1_SMALL",
+     "Image": "aws/codebuild/standard:7.0",
+     "ImagePullCredentialsType": "CODEBUILD",
+     "PrivilegedMode": false,
+     "Type": "LINUX_CONTAINER"
+    },
+    "ServiceRole": {
+     "Fn::GetAtt": [
+      "BuildDevDockerRole4FB6FED2",
+      "Arn"
+     ]
+    },
+    "Source": {
+     "BuildSpec": "buildspec.yml",
+     "Type": "CODEPIPELINE"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/BuildDevDocker/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/0WOwQ7CIBBEv8U7Xa31oEf16IXUDzAtxbiFQlMgpiH8u1Joepo3k8nuHOF8gcOu+ZqCdaKQ2IJ/2oYJ8o9enumOjzhyiYqDp5nI/a1WDkQMBvyDzzGNcpXYmGgWCMRU4G+OCW5jmCkJ1RLZvMXJB4LNAL7Wcvm06NZcO3Fa61B22y466Z6z5U3GEEjNjXYTS6cyB0Jn+9FqX0FZwmnXG8RicsriwKFO+gNOvno7GgEAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "DockerDev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

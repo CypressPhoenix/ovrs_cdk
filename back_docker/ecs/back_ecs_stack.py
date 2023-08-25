@@ -5,6 +5,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 from back_docker.ecr.back_ecr_stack import ECR
+from back_docker.vpc.back_vpc_stack import
 import os
 from dotenv import load_dotenv
 
@@ -29,7 +30,8 @@ class ECS(Stack):
         ecs_cluster = aws_ecs.Cluster(
             self,
             "ECSCluster"+name_suffix,
-            cluster_name="ECScluster"+name_suffix
+            cluster_name="ECScluster"+name_suffix,
+            vpc=vpc,
         )
 
         ecs_cluster.add_capacity(
@@ -54,4 +56,5 @@ class ECS(Stack):
             "Service",
             cluster=ecs_cluster,
             task_definition=task_definition
+
         )

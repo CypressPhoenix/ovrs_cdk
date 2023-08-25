@@ -1,0 +1,148 @@
+{
+  "version": "33.0.0",
+  "artifacts": {
+    "DockerMain.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "DockerMain.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "DockerMain": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/eu-central-1",
+      "properties": {
+        "templateFile": "DockerMain.template.json",
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-eu-central-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-eu-central-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-eu-central-1/4f0894c254bb85a6e17104ac7a9d4c8b128fe85ce7a22b0a4bfaca737e056e33.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "DockerMain.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-eu-central-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "DockerMain.assets"
+      ],
+      "metadata": {
+        "/DockerMain/BackMainDocker/ArtifactsBucketEncryptionKey/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerArtifactsBucketEncryptionKeyDFCCAB22"
+          }
+        ],
+        "/DockerMain/BackMainDocker/ArtifactsBucketEncryptionKeyAlias/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerArtifactsBucketEncryptionKeyAlias183E277E"
+          }
+        ],
+        "/DockerMain/BackMainDocker/ArtifactsBucket/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerArtifactsBucket55AE8F63"
+          }
+        ],
+        "/DockerMain/BackMainDocker/ArtifactsBucket/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerArtifactsBucketPolicy0AC638CC"
+          }
+        ],
+        "/DockerMain/BackMainDocker/Role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerRole6DB252D5"
+          }
+        ],
+        "/DockerMain/BackMainDocker/Role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerRoleDefaultPolicy802C456F"
+          }
+        ],
+        "/DockerMain/BackMainDocker/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDocker99CC5EEE"
+          }
+        ],
+        "/DockerMain/BackMainDocker/SourceMainDocker/GitHubSourceMainDocker/CodePipelineActionRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerSourceMainDockerGitHubSourceMainDockerCodePipelineActionRoleCCAA7C58"
+          }
+        ],
+        "/DockerMain/BackMainDocker/SourceMainDocker/GitHubSourceMainDocker/CodePipelineActionRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerSourceMainDockerGitHubSourceMainDockerCodePipelineActionRoleDefaultPolicy65D78C32"
+          }
+        ],
+        "/DockerMain/BackMainDocker/BuildMainSDocker/BuildActionMainDocker/CodePipelineActionRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerBuildMainSDockerBuildActionMainDockerCodePipelineActionRole4D732530"
+          }
+        ],
+        "/DockerMain/BackMainDocker/BuildMainSDocker/BuildActionMainDocker/CodePipelineActionRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BackMainDockerBuildMainSDockerBuildActionMainDockerCodePipelineActionRoleDefaultPolicy51114503"
+          }
+        ],
+        "/DockerMain/BuildMainDocker/Role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BuildMainDockerRole1316EE0B"
+          }
+        ],
+        "/DockerMain/BuildMainDocker/Role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BuildMainDockerRoleDefaultPolicy4AF33FDC"
+          }
+        ],
+        "/DockerMain/BuildMainDocker/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BuildMainDocker3D5D4C9C"
+          }
+        ],
+        "/DockerMain/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/DockerMain/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/DockerMain/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "DockerMain"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  }
+}
