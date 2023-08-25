@@ -2,17 +2,29 @@ from aws_cdk import Stack, CfnOutput
 from constructs import Construct
 from aws_cdk import (
     aws_iam as iam,
+    Fn
 )
-from front_main.front_main_stack.front_main_s3_stack import FrontMainS3
-from front_main.front_main_stack.front_main_cloudfront_stack import FrontMainCLoudfront
+from front.front_cloudfront_stack.front_cloudfront_stack import FrontMainCLoudfront
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-class FrontInfraMain(Stack):
+class FrontIAM(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        environment = os.environ.get("ENV")
+
+        if environment == "dev":
+            name_suffix = "dev"
+        elif environment == "main":
+            name_suffix = "main"
+        elif environment == "test":
+            name_suffix = "test"
+        else:
+            raise ValueError("Unknown environment: {}".format(environment))
+
+        front_s3_bucket_arn = Fn.import_value("S3BucketArn"+name_suffix)
         existing_managed_policy_arn = "arn:aws:iam::aws:policy/CloudFrontFullAccess"
 
         existing_policy = iam.ManagedPolicy.from_managed_policy_arn(
@@ -26,7 +38,7 @@ class FrontInfraMain(Stack):
                 iam.PolicyStatement(
                     actions=["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
                     effect=iam.Effect.ALLOW,
-                    resources=[FrontMainS3.bucket_main.bucket_arn, f"{FrontMainS3.bucket_main.bucket_arn}/*", FrontMainS3.bucket_main.bucket_arn, FrontMainS3.bucket_main.bucket_arn + "*"],
+                    resources=[front_s3_bucket_arn, f"{front_s3_bucket_arn}/*", front_s3_bucket_arn, front_s3_bucket_arn + "*"],
                 )
             ]
         )
@@ -36,7 +48,7 @@ class FrontInfraMain(Stack):
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=["cloudfront:*"],
-                    resources=[f"arn:aws:cloudfront:::{os.getenv('ACCOUNT_ID')}:distribution/{FrontMainCLoudfront.distribution_main}"]
+                    resources=[f"arn:aws:cloudfront:::{os.getenv('ACCOUNT_ID')}:distribution/{self.distribution_id}"]
                 )
             ]
         )

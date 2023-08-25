@@ -1,7 +1,6 @@
 from aws_cdk import (
-    aws_ecr,
+    aws_ecs,
     Stack,
-
 )
 from constructs import Construct
 import os
@@ -9,8 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-class FrontMain(Stack):
+class ECS(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -25,9 +23,8 @@ class FrontMain(Stack):
         else:
             raise ValueError("Unknown environment: {}".format(environment))
 
-
-        repository = aws_ecr.Repository(
-            self, "Repository"+name_suffix,
-            image_scan_on_push=True,
-            repository_name="ECR"+name_suffix,
-            )
+        ecs_cluster = aws_ecs.Cluster(
+            self,
+            "ECSCluster"+name_suffix,
+            cluster_name="ecscluster"+name_suffix
+        )
