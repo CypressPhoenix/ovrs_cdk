@@ -26,8 +26,8 @@ class ECR(Stack):
             raise ValueError("Unknown environment: {}".format(environment))
 
 
-        repository = aws_ecr.Repository(
-            self, "Repository"+name_suffix,
+        docker_back_repository = aws_ecr.Repository(
+            self, "DockerBackRepository"+name_suffix,
             image_scan_on_push=True,
             repository_name="ecr"+name_suffix,
             )

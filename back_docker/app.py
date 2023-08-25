@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
 class MyApp(App):
     def __init__(self):
         super().__init__()
@@ -23,15 +24,11 @@ class MyApp(App):
 
         region = os.environ.get("REGION_HOME")
 
-        # Создание стеков
         docker_cp_stack = DockerCP(self, "DockerCP"+name_suffix, env={'region': region})
         ecr_stack = ECR(self, "DockerECR"+name_suffix, env={'region': region})
         ecs_stack = ECS(self, "DockerECS"+name_suffix, env={'region': region})
         s3_stack = S3Bucket(self, "DockerS3Bucket"+name_suffix, env={'region': region})
 
-        # Установка зависимостей между стеками
-#       ecr_stack.add_dependency(docker_stack)  # ECR зависит от DockerCP
-#        ecs_stack.add_dependency(ecr_stack)      # ECS зависит от ECR
 
 app = MyApp()
 app.synth()

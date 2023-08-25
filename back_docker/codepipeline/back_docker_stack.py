@@ -50,8 +50,7 @@ class DockerCP(Stack):
 
         dockerpipeline.add_stage(stage_name="Source" + name_suffix, actions=[github_source_action])
 
-
-        dockercodebuild = codebuild.PipelineProject(
+        docker_codebuild = codebuild.PipelineProject(
             self,
             "DockerBuild" + name_suffix,
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
@@ -63,7 +62,7 @@ class DockerCP(Stack):
         build_action = codepipeline_actions.CodeBuildAction(
             action_name="BuildActionDocker" + name_suffix,
             input=source_output,
-            project=dockercodebuild,
+            project=docker_codebuild,
             outputs=[build_output],
             environment_variables={
                 "ENV": codebuild.BuildEnvironmentVariable(value=os.environ.get("ENV")),

@@ -2,12 +2,12 @@ from aws_cdk import Stack, CfnOutput
 from constructs import Construct
 from aws_cdk import (
     aws_s3 as s3,
-    aws_iam as iam,
     RemovalPolicy
 )
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 
 class S3Bucket(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
@@ -25,14 +25,14 @@ class S3Bucket(Stack):
             raise ValueError("Unknown environment: {}".format(environment))
 
 
-        bucket_main = s3.Bucket(
+        docker_back_s3bucket = s3.Bucket(
             self,
-            "bucket-docker-kryvobok"+name_suffix,
-            bucket_name="bucket-docker-kryvobok"+name_suffix,
+            "bucketdockerkryvobok"+name_suffix,
+            bucket_name="bucketdockerkryvobok"+name_suffix,
             encryption=s3.BucketEncryption.S3_MANAGED,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
         )
 
-        CfnOutput(self, "S3 Bucket ARN", value=bucket_main.bucket_arn)
+        CfnOutput(self, "S3 Bucket ARN", value=docker_back_s3bucket.bucket_arn)
