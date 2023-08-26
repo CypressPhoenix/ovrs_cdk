@@ -6,6 +6,8 @@ from aws_cdk import (
 )
 import os
 from dotenv import load_dotenv
+from utils.environment import get_name_suffix
+
 load_dotenv()
 
 
@@ -13,17 +15,7 @@ class S3Bucket(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        environment = os.environ.get("ENV")
-
-        if environment == "dev":
-            name_suffix = "dev"
-        elif environment == "main":
-            name_suffix = "main"
-        elif environment == "test":
-            name_suffix = "test"
-        else:
-            raise ValueError("Unknown environment: {}".format(environment))
-
+        name_suffix = get_name_suffix()
 
         docker_back_s3bucket = s3.Bucket(
             self,

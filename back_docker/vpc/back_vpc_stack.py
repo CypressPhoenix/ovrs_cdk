@@ -1,30 +1,19 @@
 from aws_cdk import (
-    aws_ec2,
     Stack,
-
+    aws_ec2,
+    CfnOutput
 )
 from constructs import Construct
-class BackVPC(Stack):
+from dotenv import load_dotenv
+from utils.environment import get_name_suffix
 
+load_dotenv()
+class BackVPC(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        vpc = aws_ec2.Vpc(
-            self,
-            "MyVPC",
-            max_azs=2,
-            cidr="10.0.0.0/16",  # Задайте подходящий CIDR для вашей сети
-            subnet_configuration=[
-                aws_ec2.SubnetConfiguration(
-                    name="Public",
-                    subnet_type=aws_ec2.SubnetType.PUBLIC
-                ),
-                aws_ec2.SubnetConfiguration(
-                    name="Private",
-                    subnet_type=aws_ec2.SubnetType.PRIVATE
-                )
-            ],
-            nat_gateways=1  # Количество NAT Gateways для приватных подсетей
-        )
+        name_suffix = get_name_suffix()
+        vpc = aws_ec2.Vpc(self, "BackDockerVPC"+name_suffix, max_azs=2)
+        vpc_id = vpc.vpc_id
 
-        self.vpc = vpc
+        CfnOutput(self, "BackDockerVPCID"+name_suffix, value=vpc_id, export_name="BackDockerVPCID" + name_suffix)

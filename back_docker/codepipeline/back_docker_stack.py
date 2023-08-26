@@ -6,6 +6,7 @@ from aws_cdk import (
     Fn
 )
 from constructs import Construct
+from utils.environment import get_name_suffix
 import os
 from dotenv import load_dotenv
 from aws_cdk.aws_codebuild import LinuxBuildImage
@@ -21,15 +22,8 @@ class DockerCP(Stack):
         connection_arn = os.environ.get("CONNECTION_ARN")
         git_repo_name = os.environ.get("GIT_REPO_NAME")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
-
-        if os.environ.get("ENV") == "dev":
-            name_suffix = "dev"
-        elif os.environ.get("ENV") == "main":
-            name_suffix = "main"
-        elif os.environ.get("ENV") == "test":
-            name_suffix = "test"
-        else:
-            raise ValueError("Unknown environment: {}".format(os.environ.get("ENV")))
+        alb_dns_name = Fn.import_value("MyALBDNSName")
+        name_suffix = get_name_suffix()
 
         dockerpipeline = codepipeline.Pipeline(
             self, "DockerCP" + name_suffix, pipeline_name="DockerCP" + name_suffix
@@ -66,6 +60,7 @@ class DockerCP(Stack):
             outputs=[build_output],
             environment_variables={
                 "ENV": codebuild.BuildEnvironmentVariable(value=os.environ.get("ENV")),
+                "Endpoint": codebuild.BuildEnvironmentVariable(value=alb_dns_name)
             },
         )
 

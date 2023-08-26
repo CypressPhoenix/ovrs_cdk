@@ -26,7 +26,7 @@ class MyApp(App):
         FrontCP(self, "FrontCP"+name_suffix, env={'region': region})
         FrontS3(self, "FrontS3"+name_suffix, env={'region': region})
         FrontIAM(self, "FrontIAM"+name_suffix, env={'region': region})
-        FrontCLoudfront(self, "FrontCLoudfront"+name_suffix, env={'region': region})
+        FrontCLoudfront(self, "FrontCloudfront"+name_suffix, env={'region': region})
 
 app = MyApp()
 app.synth()

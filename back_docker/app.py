@@ -3,8 +3,11 @@ from codepipeline.back_docker_stack import DockerCP
 from ecr.back_ecr_stack import ECR
 from ecs.back_ecs_stack import ECS
 from s3.back_s3_stack import S3Bucket
+from alb.back_alb_stack import ALB
+from vpc.back_vpc_stack import BackVPC
 import os
 from dotenv import load_dotenv
+from utils.environment import get_name_suffix
 load_dotenv()
 
 
@@ -12,22 +15,15 @@ class MyApp(App):
     def __init__(self):
         super().__init__()
 
-        environment = os.environ.get("ENV")
-        if environment == "dev":
-            name_suffix = "dev"
-        elif environment == "main":
-            name_suffix = "main"
-        elif environment == "test":
-            name_suffix = "test"
-        else:
-            raise ValueError("Unknown environment: {}".format(environment))
+        name_suffix = get_name_suffix()
 
         region = os.environ.get("REGION_HOME")
-
-        docker_cp_stack = DockerCP(self, "DockerCP"+name_suffix, env={'region': region})
-        ecr_stack = ECR(self, "DockerECR"+name_suffix, env={'region': region})
-        ecs_stack = ECS(self, "DockerECS"+name_suffix, env={'region': region})
-        s3_stack = S3Bucket(self, "DockerS3Bucket"+name_suffix, env={'region': region})
+        BackVPC(self,"BackVPC"+name_suffix, env={'region':region})
+        ALB(self, "ALB"+name_suffix, env={'region':region})
+        DockerCP(self, "DockerCP"+name_suffix, env={'region': region})
+        ECR(self, "DockerECR"+name_suffix, env={'region': region})
+        ECS(self, "DockerECS"+name_suffix, env={'region': region})
+        S3Bucket(self, "DockerS3Bucket"+name_suffix, env={'region': region})
 
 
 app = MyApp()
