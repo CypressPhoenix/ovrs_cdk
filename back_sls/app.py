@@ -1,8 +1,6 @@
 from aws_cdk import App
-from front_cloudfront_stack.front_cloudfront_stack import FrontInfra
-from front_iam_stack.front_iam_stack import FrontIAM
-from front_s3bucket_stack.front_s3_stack import FrontS3
-from front_codepipeline_stack.front_cp_stack import FrontCP
+from back_sls_cp.back_sls_cp_stack import SLSCodepipeline
+from serverless_infra.serverless_infra_stack import DatabaseStack
 import os
 from dotenv import load_dotenv
 from utils.environment import get_name_suffix
@@ -16,10 +14,8 @@ class MyApp(App):
 
         region = os.environ.get("REGION_HOME")
 
-        FrontCP(self, "FrontCP"+name_suffix, env={'region': region})
- #       FrontS3(self, "FrontS3"+name_suffix, env={'region': region})
-        FrontIAM(self, "FrontIAM"+name_suffix, env={'region': region})
-        FrontInfra(self, "FrontInfra"+name_suffix, env={'region': region})
+        SLSCodepipeline(self, "SLSCP"+name_suffix, env={'region': region})
+        DatabaseStack(self, "DatabaseStack"+name_suffix, env={'region': region})
 
 app = MyApp()
 app.synth()

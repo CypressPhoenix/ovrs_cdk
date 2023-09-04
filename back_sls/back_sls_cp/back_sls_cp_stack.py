@@ -5,6 +5,7 @@ from aws_cdk import (
     Stack,
     Fn
 )
+from utils.environment import get_name_suffix
 from constructs import Construct
 import os
 from dotenv import load_dotenv
@@ -14,20 +15,21 @@ import aws_cdk.aws_iam as iam
 load_dotenv()
 
 
-class SLSMain(Stack):
+class SLSCodepipeline(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        name_suffix = get_name_suffix()
+
         connection_arn = os.environ.get("CONNECTION_ARN")
-        git_branch = os.environ.get("GIT_BRANCH_MAIN")
         git_repo_name = os.environ.get("GIT_REPO_NAME_SLS")
         git_repo_owner = os.environ.get("GIT_REPO_OWNER")
-        CardsTableArnMain = Fn.import_value("CardsTableArnMain")
-        ColumnsTableArnMain = Fn.import_value("ColumnsTableArnMain")
-        ColumnsTableNameMain = Fn.import_value("ColumnsTableNameMain")
-        CardsTableNameMain = Fn.import_value("CardsTableNameMain")
+        CardsTableArn = Fn.import_value("CardsTableArn"+name_suffix)
+        ColumnsTableArn = Fn.import_value("ColumnsTableArn"+name_suffix)
+        ColumnsTableName = Fn.import_value("ColumnsTableName"+name_suffix)
+        CardsTableName = Fn.import_value("CardsTableName"+name_suffix)
 
-        backslsmainpipeline = codepipeline.Pipeline(self, "BackMainSLS", pipeline_name="BackMainSLS",)
+        backslspipeline = codepipeline.Pipeline(self, "BackSLS"+name_suffix, pipeline_name="BackSLS"+name_suffix,)
 
         source_output = codepipeline.Artifact()
         build_output = codepipeline.Artifact()
@@ -45,22 +47,21 @@ class SLSMain(Stack):
         )
 
         github_source_action_main = codepipeline_actions.CodeStarConnectionsSourceAction(
-            action_name="GitHubSourceMainSLS",
+            action_name="GitHubSourceSLS"+name_suffix,
             owner=git_repo_owner,
             repo=git_repo_name,
-            branch=git_branch,
+            branch=name_suffix,
             connection_arn=connection_arn,
             output=source_output,
             trigger_on_push=True,
         )
 
-        backslsmainpipeline.add_stage(stage_name="SourceMainSLS", actions=[github_source_action_main])
+        backslspipeline.add_stage(stage_name="SourceSLS", actions=[github_source_action_main])
 
-        codebuild_role_arn_main = Fn.import_value("CodeBuildRoleArnMain")
 
         project_main = codebuild.PipelineProject(
             self,
-            "BuildMainSLS",
+            "BuildSLS"+name_suffix,
             build_spec=codebuild.BuildSpec.from_source_filename("buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=LinuxBuildImage.from_code_build_image_id("aws/codebuild/standard:7.0")
@@ -68,16 +69,19 @@ class SLSMain(Stack):
             role=sls_role,
         )
 
-        build_action_main_SLS = codepipeline_actions.CodeBuildAction(
-            action_name="BuildActionMainSLS",
+        build_action_SLS = codepipeline_actions.CodeBuildAction(
+            action_name="BuildActionSLS"+name_suffix,
             input=source_output,
             project=project_main,
             outputs=[build_output],
             environment_variables={
-                "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArnMain),
-                "CARDS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=ColumnsTableArnMain),
+                "COLUMNS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=CardsTableArn),
+                "CARDS_TABLE_ARN": codebuild.BuildEnvironmentVariable(value=ColumnsTableArn),
+                "COLUMNS_TABLE_NAME": codebuild.BuildEnvironmentVariable(value=ColumnsTableName),
+                "CARDS_TABLE_NAME": codebuild.BuildEnvironmentVariable(value=CardsTableName),
+
             },
         )
 
-        backslsmainpipeline.add_stage(stage_name="BuildMainSLS", actions=[build_action_main_SLS])
+        backslspipeline.add_stage(stage_name="BuildSLS"+name_suffix, actions=[build_action_SLS])
 

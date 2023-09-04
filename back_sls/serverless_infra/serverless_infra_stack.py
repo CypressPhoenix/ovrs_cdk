@@ -1,9 +1,9 @@
-from aws_cdk import Stack, RemovalPolicy, Fn, CfnOutput
+from aws_cdk import Stack, RemovalPolicy, CfnOutput
 from aws_cdk import aws_dynamodb as dynamodb
 from constructs import Construct
 from utils.environment import get_name_suffix
 
-class DatabaseStackDev(Stack):
+class DatabaseStack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)

@@ -1,4 +1,4 @@
-from aws_cdk import Stack, aws_ecs, CfnOutput, aws_iam, aws_ec2
+from aws_cdk import Stack, aws_ecs, CfnOutput, aws_iam, aws_ec2, aws_route53
 from constructs import Construct
 from utils.environment import get_name_suffix
 from aws_cdk import Fn
@@ -112,7 +112,6 @@ class ECS(Stack):
         alb_dns_name = alb.load_balancer_dns_name
         ecs_target = ecs_service
 
-        # Привяжите целевой объект к Application Target Group
         ecs_target.attach_to_application_target_group(target_group)
 
         listener = alb.add_listener("HttpsListener"+name_suffix,
